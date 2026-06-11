@@ -2,19 +2,19 @@ const { Router } = require('express');
 const router = Router();
 const { getAllPosts, getPostById, getPostByAuthorId, createPost, updatePost, deletePost } = require("../services/postsService");
 
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
     try {
-    const posts = getAllPosts();
+        const posts = await getAllPosts();
         res.json(posts);
     } catch (error) {
         res.status(500).json({ message: 'Error al obtener los posts' });
     }
 });
 
-router.get('/author/:author_id', (req, res) => {
+router.get('/author/:author_id', async (req, res) => {
     const author_id = parseInt(req.params.author_id);
     try {
-        const posts = getPostByAuthorId(author_id);
+        const posts = await getPostByAuthorId(author_id);
         if (posts.length === 0) {
             return res.status(404).json({ message: 'No se encontraron posts para este autor' });
         }
@@ -24,10 +24,10 @@ router.get('/author/:author_id', (req, res) => {
     }
 });
 
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
     const id = parseInt(req.params.id);
     try {
-        const post = getPostById(id);
+        const post = await getPostById(id);
         if (!post) {
             return res.status(404).json({ message: 'Post no encontrado' });
         }
@@ -37,23 +37,23 @@ router.get('/:id', (req, res) => {
     }
 });
 
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
     const { title, content, author_id, published } = req.body;
     try {
         if (!title || !content || !author_id) {
             return res.status(400).json({ message: 'Faltan campos requeridos' });
         }
-        const newPost = createPost({ title, content, author_id, published });
+        const newPost = await createPost({ title, content, author_id, published });
         res.status(201).json(newPost);
     } catch (error) {
         res.status(500).json({ message: 'Error al crear el post' });
     }
 });
 
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
     const id = parseInt(req.params.id);
     try {
-        const updatedPost = updatePost(id, req.body);
+        const updatedPost = await updatePost(id, req.body);
         if (!updatedPost) {
             return res.status(404).json({ message: 'Post no encontrado' });
         }   
@@ -63,10 +63,10 @@ router.put('/:id', (req, res) => {
     }
 });
 
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
     const id = parseInt(req.params.id);
     try {
-        const deletedPost = deletePost(id);
+        const deletedPost = await deletePost(id);
         if (!deletedPost) {
             return res.status(404).json({ message: 'Post no encontrado' });
         }

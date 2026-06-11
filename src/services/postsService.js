@@ -1,70 +1,41 @@
-let posts = [
- {
-   id: 1,
-   title: 'Introducción a Node.js',
-   content: 'Node.js es un runtime de JavaScript...',
-   author_id: 1,
-   published: true
- },
- {
-   id: 2,
-   title: 'PostgreSQL vs MySQL',
-   content: 'Ambas bases de datos tienen ventajas...',
-   author_id: 2,
-   published: true
- },
- {
-   id: 3,
-   title: 'APIs RESTful',
-   content: 'REST es un estilo arquitectónico...',
-   author_id: 1,
-   published: true
- },
- {
-   id: 4,
-   title: 'Manejo de errores en Express',
-   content: 'El manejo apropiado de errores...',
-   author_id: 3,
-   published: false
- },
- {
-   id: 5,
-   title: 'Async/Await explicado',
-   content: 'Las promesas simplifican el código asíncrono...',
-   author_id: 3,
-   published: false
- }
-];
+const pool = require('../db/pool');
 
-function getAllPosts() {
- return posts;
+async function getAllPosts() {
+ const result = await pool.query('SELECT * FROM posts');
+ return result.rows;
 }
 
-function getPostByAuthorId(author_id) {
- return posts.filter(post => parseInt(post.author_id) === parseInt(author_id));
+async function getPostByAuthorId(author_id) {
+ const result = await pool.query('SELECT * FROM posts WHERE author_id = $1', [author_id]);
+ return result.rows;
 }
 
-function getPostById(id) {
- return posts.find(post => parseInt(post.id) === parseInt(id));
+
+async function getPostById(id) {
+ const result = await pool.query('SELECT * FROM posts WHERE id = $1', [id]);
+ if (result.rows.length === 0) return null;
+ return result.rows[0];
 }
 
-function createPost(post) {
- const newPost = { id: posts.length + 1, ...post };
- posts.push(newPost);
+async function createPost(post) {
+ const result = await pool.query('INSERT INTO posts (title, content, author_id, published) VALUES ($1, $2, $3, $4) RETURNING *', [post.title, post.content, post.author_id, post.published]);
+ const newPost = result.rows[0];
  return newPost;
 }
 
-function updatePost(id, updatedInfo) {
- const postIndex = posts.findIndex(post => parseInt(post.id) === parseInt(id));
- if (postIndex === -1) return null;
- posts[postIndex] = { ...posts[postIndex], ...updatedInfo };
- return posts[postIndex];
+async function updatePost(id, updatedInfo) {
+ const result = await pool.query(
+   'UPDATE posts SET author_id = COALESCE($1, author_id), title = COALESCE($2, title), content = COALESCE($3, content), published = COALESCE($4, published) WHERE id = $5 RETURNING *',
+   [updatedInfo.author_id, updatedInfo.title, updatedInfo.content, updatedInfo.published, id]
+ );
+ if (result.rows.length === 0) return null;
+ return result.rows[0];
 }
 
-function deletePost(id) {
- const postIndex = posts.findIndex(post => parseInt(post.id) === parseInt(id));
- if (postIndex === -1) return null;
- return posts.splice(postIndex, 1)[0];
+async function deletePost(id) {
+ const result = await pool.query('DELETE FROM posts WHERE id = $1 RETURNING *', [id]);
+ if (result.rows.length === 0) return null;
+ return result.rows[0];
 }
 
 module.exports = {
