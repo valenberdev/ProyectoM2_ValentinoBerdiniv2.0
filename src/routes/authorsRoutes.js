@@ -34,6 +34,9 @@ router.post('/', async (req, res) => {
     const newAuthor = await createAuthor({ name, email, bio });
     res.status(201).json(newAuthor);
     } catch (error) {
+      if (error.code === '23505') {
+        return res.status(400).json({ message: 'El mail ya está registrado' });
+      }
     res.status(500).json({ message: 'Error al crear el autor' });
   }
 });
