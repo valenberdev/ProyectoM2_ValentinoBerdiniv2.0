@@ -4,8 +4,12 @@ const { getAllAuthors, getAuthorById, createAuthor, updateAuthor, deleteAuthor }
 
 
 router.get('/', (req, res) => {
+  try {
   const authors = getAllAuthors();
   res.json(authors);
+} catch (error) {
+  res.status(500).json({ message: 'Error al obtener los autores' });
+}
 });
 
 router.get('/:id', (req, res) => {
